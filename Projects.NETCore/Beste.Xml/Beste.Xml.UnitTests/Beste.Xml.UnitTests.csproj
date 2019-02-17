@@ -38,8 +38,4 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="xcopy &quot;$(SolutionDir)ConsoleTester\bin\Debug\netcoreapp2.1\*.*&quot; &quot;$(TargetDir)ConsoleTester&quot; /Y /I /E" />
-  </Target>
-
 </Project>
