@@ -18,7 +18,7 @@ namespace Beste.Rights.Tests
         [TestMethod]
         public void InstanciateRightControl()
         {
-            ActivateTestSchema(false);
+            ActivateTestSchema();
             RightControl rightControl = new RightControl("InstanciateRightControl");
         }
 
@@ -193,18 +193,36 @@ namespace Beste.Rights.Tests
             }
         }
 
-        public void ActivateTestSchema(bool regenerateSchema = true)
+        public void ActivateTestSchema(bool regenerateSchema = false)
         {
             SessionFactory.Assemblies = Assemblies;
             SessionFactory.ResetFactory();
             SessionFactory.Assemblies = Assemblies;
             string pathToConfig = "Resources" + Path.DirectorySeparatorChar;
             DbSettings dbSettings = DbSettings.LoadFromFile<DbSettings>(pathToConfig + "DBConnectionSettings.xml");
-            dbSettings.DbSchema = "besttaf_test";
+            dbSettings.DbSchema = "beste_test";
             dbSettings.SaveToFile(pathToConfig + "DBConnectionSettings_test.xml");
-            SessionFactory.SettingsFileName = "DBConnectionSettings_test.xml";
+            SessionFactory.SettingsPath = pathToConfig + "DBConnectionSettings_test.xml";
             if (regenerateSchema)
+            {
                 SessionFactory.GenerateTables();
+            }
+
+            // try to connect (check if table available)
+            try
+            {
+                using (NHibernate.ISession session = SessionFactory.GetSession())
+                using (ITransaction transaction = session.BeginTransaction())
+                {
+                    BesteRightsNamespace besteRightsNamespace = session.QueryOver<BesteRightsNamespace>()
+                        .SingleOrDefault();
+                }
+            }
+            catch
+            {
+                // try to generate tables if connection failed
+                SessionFactory.GenerateTables();
+            }
         }
     }
 }
