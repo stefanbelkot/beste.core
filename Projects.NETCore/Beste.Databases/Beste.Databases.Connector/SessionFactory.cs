@@ -120,7 +120,22 @@ namespace Beste.Databases.Connector
             factory = null;
         }
 
-
+        public static T ExecuteInTransactionContext<T>(Func<ISession, ITransaction, T> body)
+        {
+            using (NHibernate.ISession session = SessionFactory.GetSession())
+            using (ITransaction transaction = session.BeginTransaction())
+            {
+                return body(session, transaction);
+            }
+        }
+        public static void ExecuteInTransactionContext(Action<ISession, ITransaction> body)
+        {
+            using (NHibernate.ISession session = SessionFactory.GetSession())
+            using (ITransaction transaction = session.BeginTransaction())
+            {
+                body(session, transaction);
+            }
+        }
 
     }
 }
