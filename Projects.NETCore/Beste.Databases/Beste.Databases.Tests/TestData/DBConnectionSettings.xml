@@ -3,5 +3,5 @@
 	<Ip>localhost</Ip>
 	<DbSchema>besttaf</DbSchema>
 	<DbUser>root</DbUser>
-	<DbPassword></DbPassword>
+	<DbPassword>root</DbPassword>
 </DbSettings>

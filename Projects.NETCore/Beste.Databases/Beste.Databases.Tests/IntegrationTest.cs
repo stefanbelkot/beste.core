@@ -20,8 +20,8 @@ namespace Beste.Databases.Tests
         [TestMethod]
         public void TestDatabaseConnection()
         {
-            ActivateTestSchema();
             SessionFactory.Assemblies = Assemblies;
+            ActivateTestSchema();
             using (NHibernate.ISession session = SessionFactory.GetSession())
             using (ITransaction transaction = session.BeginTransaction())
             {
@@ -71,10 +71,9 @@ namespace Beste.Databases.Tests
         {
             SessionFactory.Assemblies = Assemblies;
             SessionFactory.ResetFactory();
-            SessionFactory.Assemblies = Assemblies;
             string pathToConfig = "TestData" + Path.DirectorySeparatorChar;
             DbSettings dbSettings = DbSettings.LoadFromFile<DbSettings>(pathToConfig + "DBConnectionSettings.xml");
-            dbSettings.DbSchema = "besttaf_test";
+            dbSettings.DbSchema = "beste_test";
             dbSettings.SaveToFile(pathToConfig + "DBConnectionSettings_test.xml");
             SessionFactory.SettingsPath = pathToConfig + "DBConnectionSettings_test.xml";
         }
