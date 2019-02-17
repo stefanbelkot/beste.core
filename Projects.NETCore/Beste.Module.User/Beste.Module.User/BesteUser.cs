@@ -57,7 +57,7 @@ namespace Beste.Module
             {
                 user = JsonConvert.DeserializeObject<User>(param);
             }
-            catch (Exception ex)
+            catch (JsonReaderException)
             {
                 return new BesteUserAuthentificationResponse(BesteUserAuthentificationResult.JSON_ERROR, null);
             }
@@ -137,7 +137,7 @@ namespace Beste.Module
             {
                 user = JsonConvert.DeserializeObject<User>(param);
             }
-            catch (Exception ex)
+            catch (JsonReaderException)
             {
                 return new ModifyUserResponse(ModifyUserResult.JSON_ERROR, null, null, null);
             }
@@ -175,7 +175,7 @@ namespace Beste.Module
             {
                 user = JsonConvert.DeserializeObject<User>(param);
             }
-            catch (Exception ex)
+            catch (JsonReaderException)
             {
                 return new ModifyUserResponse(ModifyUserResult.JSON_ERROR, null, null, null);
             }
@@ -190,6 +190,13 @@ namespace Beste.Module
                 {
                     return new ModifyUserResponse(ModifyUserResult.PASSWORD_GUIDELINES_ERROR, null, besteUserSettings?.PasswordRules, user);
                 }
+                if(session.QueryOver<User>()
+                    .Where(p => p.Username == user.Username)
+                    .SingleOrDefault() != null)
+                {
+                    return new ModifyUserResponse(ModifyUserResult.USER_ALREADY_EXISTS, null, null, user);
+                }
+
                 user.WrongPasswordCounter = 0;
                 user.MustChangePassword = true;
                 user.SaltValue = random.Next(0, 1000000);
@@ -207,7 +214,7 @@ namespace Beste.Module
             {
                 user = JsonConvert.DeserializeObject<User>(param);
             }
-            catch (Exception ex)
+            catch (JsonReaderException)
             {
                 return new ModifyUserResponse(ModifyUserResult.JSON_ERROR, null, null, null);
             }
@@ -239,7 +246,7 @@ namespace Beste.Module
             {
                 user = JsonConvert.DeserializeObject<User>(param);
             }
-            catch (Exception ex)
+            catch (JsonReaderException)
             {
                 return new ModifyUserResponse(ModifyUserResult.JSON_ERROR, null, null, null);
             }

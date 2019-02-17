@@ -93,6 +93,7 @@ namespace Beste.Module
         UNKNOWN_EXCEPTION,
         USER_UNKNOWN,
         WRONG_PARAMETER,
+        USER_ALREADY_EXISTS,
         JSON_ERROR
     }
 

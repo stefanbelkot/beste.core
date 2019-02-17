@@ -6,6 +6,7 @@ using System.Reflection;
 using Beste.Databases.Connector;
 using System.IO;
 using System;
+using NHibernate;
 
 namespace Beste.Module.Tests
 {
@@ -16,12 +17,17 @@ namespace Beste.Module.Tests
         {
             Assembly.GetAssembly(typeof(UserMap))
         };
-        
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            ActivateTestSchema();
+            ResetTables();
+        }
 
         [TestMethod]
         public void CreateUserWrongPasswordGuidelines()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User();
             user.Username = "UsernamePasswordGuidelines";
@@ -30,35 +36,25 @@ namespace Beste.Module.Tests
             user.Email = "Email";
             user.Password = "passwort";
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.PASSWORD_GUIDELINES_ERROR)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.PASSWORD_GUIDELINES_ERROR.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.PASSWORD_GUIDELINES_ERROR);
+
         }
 
         [TestMethod]
         public void CreateUserMissingParams()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User();
             user.Username = "Username";
             user.Password = "Passwort1$";
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.MISSING_USER_PARAMS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.MISSING_USER_PARAMS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.MISSING_USER_PARAMS);
             
         }
 
         [TestMethod]
         public void CreateUserAndLogin()
         {
-            ActivateTestSchema();
-
             BesteUser besteUser = new BesteUser();
 
             User user = new User
@@ -71,42 +67,27 @@ namespace Beste.Module.Tests
             };
 
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             User loginUser = new User
             {
                 Username = user.Username,
                 Password = user.Password
             };
-
             BesteUserAuthentificationResponse authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.MUST_CHANGE_PASSWORT)
-            {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.MUST_CHANGE_PASSWORT.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.MUST_CHANGE_PASSWORT);
 
             response = besteUser.ChangePasswordByUser(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.SUCCESS)
-            {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.SUCCESS);
+
         }
 
         [TestMethod]
         public void CreateUserAndEdit()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -117,11 +98,8 @@ namespace Beste.Module.Tests
                 Password = "Passwort1$"
             };
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             User loginUser = new User
             {
                 Username = "UsernameToEdit",
@@ -132,24 +110,16 @@ namespace Beste.Module.Tests
                 MustChangePassword = false
             };
             response = besteUser.EditUser(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
 
             BesteUserAuthentificationResponse authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.SUCCESS)
-            {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.SUCCESS);
+
         }
 
         [TestMethod]
         public void CreateUserAndChangePasswortBreakRules()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -160,27 +130,20 @@ namespace Beste.Module.Tests
                 Password = "Passwort1$"
             };
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             User loginUser = new User
             {
                 Username = user.Username,
                 Password = "passwort"
             };
             response = besteUser.ChangePasswordByUser(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.PASSWORD_GUIDELINES_ERROR)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.PASSWORD_GUIDELINES_ERROR);
+
         }
         [TestMethod]
         public void CreateUserAndDelete()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -191,28 +154,39 @@ namespace Beste.Module.Tests
                 Password = "Passwort1$"
             };
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             User loginUser = new User
             {
                 Username = user.Username,
                 Password = user.Password
             };
             response = besteUser.DeleteUser(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+        }
+        [TestMethod]
+
+        public void CreateDuplicateUser()
+        {
+            BesteUser besteUser = new BesteUser();
+            User user = new User
             {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+                Username = "UsernameLogin",
+                Lastname = "Lastname",
+                Firstname = "Firstname",
+                Email = "Email",
+                Password = "Passwort1$"
+            };
+            ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
+            response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(response, ModifyUserResult.USER_ALREADY_EXISTS);
         }
 
         [TestMethod]
         public void UnknownUser()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -220,35 +194,22 @@ namespace Beste.Module.Tests
                 Password = "Passwort1$"
             };
             BesteUserAuthentificationResponse authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.USER_UNKNOWN)
-            {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.USER_UNKNOWN);
+            
             ModifyUserResponse response = besteUser.EditUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.USER_UNKNOWN)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.USER_UNKNOWN);
+
             response = besteUser.ChangePasswordByUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.USER_UNKNOWN)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.USER_UNKNOWN);
+
             response = besteUser.DeleteUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.USER_UNKNOWN)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.USER_UNKNOWN);
+
         }
 
         [TestMethod]
         public void CreateUserAndWrongPasswortCounter()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -259,11 +220,8 @@ namespace Beste.Module.Tests
                 Password = "Passwort1$"
             };
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             User loginUser = new User();
             loginUser.Username = user.Username;
             loginUser.Password = user.Password + "1";
@@ -272,20 +230,13 @@ namespace Beste.Module.Tests
             for (int i = 0; i < 13; i++)
             {
                 authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-                if (authResponse.Result != BesteUserAuthentificationResult.WRONG_PASSWORD)
-                {
-                    Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.WRONG_PASSWORD.ToString());
-                    Assert.Fail();
-                }
+                ValiateResponse(authResponse, BesteUserAuthentificationResult.WRONG_PASSWORD);
             }
 
             loginUser.Password = user.Password;
             authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.WRONG_PASSWORD_COUNTER_TOO_HIGH)
-            {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.WRONG_PASSWORD_COUNTER_TOO_HIGH.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.WRONG_PASSWORD_COUNTER_TOO_HIGH);
+
         }
 
         [TestMethod]
@@ -293,42 +244,26 @@ namespace Beste.Module.Tests
         {
             BesteUser besteUser = new BesteUser();
             ModifyUserResponse response = besteUser.CreateUser("no json]");
-            if (response.Result != ModifyUserResult.JSON_ERROR)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.JSON_ERROR.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.JSON_ERROR);
+
             response = besteUser.ChangePasswordByUser("no json]");
-            if (response.Result != ModifyUserResult.JSON_ERROR)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.JSON_ERROR.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.JSON_ERROR);
+
             response = besteUser.DeleteUser("no json]");
-            if (response.Result != ModifyUserResult.JSON_ERROR)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.JSON_ERROR.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.JSON_ERROR);
+
             response = besteUser.EditUser("no json]");
-            if (response.Result != ModifyUserResult.JSON_ERROR)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.JSON_ERROR.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.JSON_ERROR);
+
             BesteUserAuthentificationResponse authResponse = besteUser.Authenticate("no json]");
-            if (authResponse.Result != BesteUserAuthentificationResult.JSON_ERROR)
-            {
-                Console.WriteLine("response.Result = " + authResponse.Result.ToString() + " Expected = " + ModifyUserResult.JSON_ERROR.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.JSON_ERROR);
+
 
         }
 
         [TestMethod]
         public void WrongParameters()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -336,16 +271,11 @@ namespace Beste.Module.Tests
                 Password = ""
             };
             BesteUserAuthentificationResponse authResponse = besteUser.Authenticate(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.WRONG_PARAMETER)
-            {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.WRONG_PARAMETER.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.WRONG_PARAMETER);
         }
         [TestMethod]
         public void CreateUserAndTryLoginWithWrongPepper()
         {
-            ActivateTestSchema();
             BesteUser besteUser = new BesteUser();
             User user = new User
             {
@@ -356,32 +286,40 @@ namespace Beste.Module.Tests
                 Password = "Passwort1$"
             };
             ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             User loginUser = new User
             {
                 Username = user.Username,
                 Password = user.Password
             };
             response = besteUser.ChangePasswordByUser(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (response.Result != ModifyUserResult.SUCCESS)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + ModifyUserResult.SUCCESS.ToString());
-                Assert.Fail();
-            }
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
             BesteUser besteUserOtherPepper = new BesteUser("otherPepper");
             BesteUserAuthentificationResponse authResponse = besteUserOtherPepper.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            if (authResponse.Result != BesteUserAuthentificationResult.WRONG_PASSWORD)
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.WRONG_PASSWORD);
+        }
+        
+        private static void ValiateResponse(ModifyUserResponse response, ModifyUserResult expectedResult)
+        {
+            if (response.Result != expectedResult)
             {
-                Console.WriteLine("authResponse.Result = " + authResponse.Result.ToString() + " Expected = " + BesteUserAuthentificationResult.SUCCESS.ToString());
+                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + expectedResult.ToString());
                 Assert.Fail();
             }
         }
 
-        public void ActivateTestSchema(bool regenerateSchema = true)
+        private static void ValiateResponse(BesteUserAuthentificationResponse response, BesteUserAuthentificationResult expectedResult)
+        {
+            if (response.Result != expectedResult)
+            {
+                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + expectedResult.ToString());
+                Assert.Fail();
+            }
+        }
+
+        public void ActivateTestSchema(bool regenerateSchema = false)
         {
             SessionFactory.Assemblies = Assemblies;
             SessionFactory.ResetFactory();
@@ -390,9 +328,36 @@ namespace Beste.Module.Tests
             //dbSettings.DbSchema = "besttaf_test";
             //dbSettings.DbPassword = "";
             //dbSettings.SaveToFile(pathToConfig + "DBConnectionSettings_test.xml");
-            SessionFactory.SettingsFileName = pathToConfig + "DBConnectionSettings_test.xml";
+            DbSettings dbSettings = DbSettings.LoadFromFile<DbSettings>(pathToConfig + "DBConnectionSettingsTest.xml");
+            SessionFactory.SettingsPath = pathToConfig + "DBConnectionSettings_test.xml";
             if (regenerateSchema)
+            {
                 SessionFactory.GenerateTables();
+            }
+
+            // try to connect (check if table available)
+            try
+            {
+                using (NHibernate.ISession session = SessionFactory.GetSession())
+                using (ITransaction transaction = session.BeginTransaction())
+                {
+                    var result = session.QueryOver<User>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                // try to generate tables if connection failed
+                SessionFactory.GenerateTables();
+            }
+        }
+        public void ResetTables()
+        {
+            using (ISession s = SessionFactory.GetSession())
+            {
+                s.Delete("from User o");
+                s.Flush();
+            }
         }
     }
 }
