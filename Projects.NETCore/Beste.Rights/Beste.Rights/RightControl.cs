@@ -39,12 +39,16 @@ namespace Beste.Rights
         readonly List<BesteRightsDefinition> BesteRightsDefinitions = new List<BesteRightsDefinition>();
         readonly Dictionary<string, BesteRightsToken> TokensForLegitimationIds = new Dictionary<string, BesteRightsToken>();
         readonly Settings settings = null;
-        public RightControl(string mainNamespace) : base()
+        readonly string settingsPath = "Resources" + Path.DirectorySeparatorChar + "Beste.Rights.Settings.xml";
+        public RightControl(string mainNamespace, string settingsPath = "") : base()
         {
-            BesteRightsNamespace = GetNameSpace(mainNamespace);
-            settings = Settings.LoadFromFile<Settings>("Resources" + Path.DirectorySeparatorChar + "Beste.Rights.Settings.xml");
-        }
+            if (settingsPath != "")
+                this.settingsPath = settingsPath;
+            settings = SettingsManager.LoadSettings(this.settingsPath);
 
+            BesteRightsNamespace = GetNameSpace(mainNamespace);
+        }
+        
         /// <summary>
         /// Register with rights from database and a list of additional rights
         /// </summary>

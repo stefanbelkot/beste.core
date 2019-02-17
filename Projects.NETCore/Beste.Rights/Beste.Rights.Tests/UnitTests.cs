@@ -1,6 +1,7 @@
 using Beste.Databases.Connector;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -34,14 +35,13 @@ namespace Beste.Rights.Tests
             xmlObject.TokenRefreshOnUsage.Hours = 1;
             xmlObject.TokenRefreshOnUsage.Minutes = 1;
             xmlObject.TokenRefreshOnUsage.Seconds = 1;
-
             xmlObject.SaveToFile("test.xml");
         }
 
         [TestMethod]
         public void CheckRegisterGivenAuthorizationsDataBaseOnly()
         {
-            ActivateTestSchema(false);
+            ActivateTestSchema();
             AddInitialRightsToDatabase();
 
             RightControl rightControl = new RightControl("CheckRegister");
@@ -193,6 +193,17 @@ namespace Beste.Rights.Tests
             }
         }
 
+        [TestMethod]
+        public void CreateDefaultSettingsByCommitNotExistingPath()
+        {
+            ActivateTestSchema(false);
+            if (File.Exists("nonExistingSettings.xml"))
+                File.Delete("nonExistingSettings.xml");
+            RightControl rightControl = new RightControl("CheckRegister", "nonExistingSettings.xml");
+            if (!File.Exists("nonExistingSettings.xml"))
+                Assert.Fail();
+        }
+
         public void ActivateTestSchema(bool regenerateSchema = false)
         {
             SessionFactory.Assemblies = Assemblies;
@@ -214,12 +225,12 @@ namespace Beste.Rights.Tests
                 using (NHibernate.ISession session = SessionFactory.GetSession())
                 using (ITransaction transaction = session.BeginTransaction())
                 {
-                    BesteRightsNamespace besteRightsNamespace = session.QueryOver<BesteRightsNamespace>()
-                        .SingleOrDefault();
+                    var besteRightsNamespace = session.QueryOver<BesteRightsNamespace>();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 // try to generate tables if connection failed
                 SessionFactory.GenerateTables();
             }
