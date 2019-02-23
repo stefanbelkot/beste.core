@@ -208,6 +208,19 @@ namespace Beste.Module.Tests
         }
 
         [TestMethod]
+        public void RightViolation()
+        {
+            // The checking of rights must be done in the application which uses the Module.User
+            // This test checks for the result code existing
+
+            BesteUserAuthentificationResponse authResponse = new BesteUserAuthentificationResponse(BesteUserAuthentificationResult.RIGHT_VIOLATION, null);
+            ValiateResponse(authResponse, BesteUserAuthentificationResult.RIGHT_VIOLATION);
+
+            ModifyUserResponse response = new ModifyUserResponse(ModifyUserResult.RIGHT_VIOLATION, null, null, null);
+            ValiateResponse(response, ModifyUserResult.RIGHT_VIOLATION);
+        }
+
+        [TestMethod]
         public void CreateUserAndWrongPasswortCounter()
         {
             BesteUser besteUser = new BesteUser();

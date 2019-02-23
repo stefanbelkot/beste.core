@@ -1,5 +1,6 @@
 ﻿using Beste.Databases.User;
 using Beste.Module.Settings;
+using Newtonsoft.Json;
 using System;
 
 namespace Beste.Module
@@ -66,6 +67,7 @@ namespace Beste.Module
         WRONG_PARAMETER,
         MUST_CHANGE_PASSWORT,
         JSON_ERROR,
+        RIGHT_VIOLATION,
         UNKNOWN_EXCEPTION
     }
 
@@ -94,6 +96,7 @@ namespace Beste.Module
         USER_UNKNOWN,
         WRONG_PARAMETER,
         USER_ALREADY_EXISTS,
+        RIGHT_VIOLATION,
         JSON_ERROR
     }
 
