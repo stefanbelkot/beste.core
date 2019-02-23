@@ -7,6 +7,10 @@
     <Copyright>2019 Beste Software</Copyright>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>D:\Dropbox\Dropbox\KompletteSicherung\09_Programmierung\Repositories\beste.core\Projects.NETCore\Beste.Databases\Beste.Databases.Connector\Beste.Databases.Connector.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Beste.Xml" Version="0.1.1" />
     <PackageReference Include="FluentNHibernate" Version="2.1.2" />

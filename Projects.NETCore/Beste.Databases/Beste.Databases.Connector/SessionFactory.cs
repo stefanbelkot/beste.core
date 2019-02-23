@@ -19,8 +19,17 @@ namespace Beste.Databases.Connector
     public static class SessionFactory
     {
         private static ISessionFactory factory = null;
+        
+        /// <summary>
+        /// Array of Assemblies Nhibernate will use to look up mappings
+        /// </summary>
         public static Assembly[] Assemblies { private get; set; }
+
+        /// <summary>
+        /// The relative or absolute SettingsPath
+        /// </summary>
         public static string SettingsPath { get; set; } = "Resources" + Path.DirectorySeparatorChar + "DBConnectionSettings.xml";
+
         private static ISessionFactory Factory
         {
             get
@@ -40,7 +49,6 @@ namespace Beste.Databases.Connector
             }
             set => factory = value;
         }
-
 
         private static string GetSettings()
         {
@@ -89,16 +97,28 @@ namespace Beste.Databases.Connector
             return fluentConfiguration;
         }
 
+        /// <summary>
+        /// Returns a session of the already configured FluentNhibernate SessionFactory
+        /// </summary>
+        /// <returns>a session</returns>
         public static ISession GetSession()
         {
             return Factory.OpenSession();
         }
-        
+
+
+        /// <summary>
+        /// Returns a stateless session of the already configured FluentNhibernate SessionFactory
+        /// </summary>
+        /// <returns>a session</returns>
         public static IStatelessSession GetStatelessSession()
         {
             return Factory.OpenStatelessSession();
         }
 
+        /// <summary>
+        /// Generates the tables of the current configuration
+        /// </summary>
         public static void GenerateTables()
         {
 
@@ -108,6 +128,9 @@ namespace Beste.Databases.Connector
             //    .BuildSessionFactory();
         }
 
+        /// <summary>
+        /// Creates the schema of the current configuration
+        /// </summary>
         public static void CreateSchema()
         {
             CreateFluentConfiguration()
@@ -115,11 +138,20 @@ namespace Beste.Databases.Connector
                 .BuildSessionFactory();
         }
 
+        /// <summary>
+        /// Resets the factory in case other connection, other mappings, etc. needed
+        /// </summary>
         public static void ResetFactory()
         {
             factory = null;
         }
 
+        /// <summary>
+        /// Executes the given Function in a transaction context with return Type of T
+        /// </summary>
+        /// <typeparam name="T">the return type</typeparam>
+        /// <param name="body">the function</param>
+        /// <returns>the return type</returns>
         public static T ExecuteInTransactionContext<T>(Func<ISession, ITransaction, T> body)
         {
             using (NHibernate.ISession session = SessionFactory.GetSession())
@@ -128,6 +160,11 @@ namespace Beste.Databases.Connector
                 return body(session, transaction);
             }
         }
+
+        /// <summary>
+        /// Executes the given Function in a transaction context
+        /// </summary>
+        /// <param name="body">the function</param>
         public static void ExecuteInTransactionContext(Action<ISession, ITransaction> body)
         {
             using (NHibernate.ISession session = SessionFactory.GetSession())
