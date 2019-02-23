@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>D:\Dropbox\Dropbox\KompletteSicherung\09_Programmierung\Repositories\beste.core\Projects.NETCore\Beste.Databases\Beste.Databases.Connector\Beste.Databases.Connector.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
