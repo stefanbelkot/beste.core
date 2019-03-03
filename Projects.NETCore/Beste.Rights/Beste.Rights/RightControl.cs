@@ -98,6 +98,7 @@ namespace Beste.Rights
         private string ApplyRights(int legitimationId, List<PureRight> pureRights, string token = null)
         {
             string authorizedToken = token ?? GenerateToken(legitimationId);
+            RegisterToken(authorizedToken, legitimationId);
             foreach(PureRight pureRight in pureRights)
             {
                 if (pureRight.Authorized == true)
@@ -113,16 +114,23 @@ namespace Beste.Rights
             return authorizedToken;
         }
 
+        private void RegisterToken(string authorizedToken, int legitimationId)
+        {
+            if(!TokensForLegitimationIds.ContainsKey(authorizedToken))
+            {
+                TokensForLegitimationIds.Add(authorizedToken, new BesteRightsToken
+                {
+                    BesteRightsNamespace = BesteRightsNamespace,
+                    LegitimationId = legitimationId,
+                    Token = authorizedToken,
+                    Ends = DateTime.Now
+                });
+            }
+        }
+
         private string GenerateToken(int legitimationId)
         {
             string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            TokensForLegitimationIds.Add(token, new BesteRightsToken
-            {
-                BesteRightsNamespace = BesteRightsNamespace,
-                LegitimationId = legitimationId,
-                Token = token,
-                Ends = DateTime.Now
-            });
             return token;
         }
 

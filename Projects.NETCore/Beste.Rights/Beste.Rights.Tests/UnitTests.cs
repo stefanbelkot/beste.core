@@ -189,6 +189,12 @@ namespace Beste.Rights.Tests
                 {
                     session.Insert(item);
                 }
+
+
+                BesteRightsNamespace besteRightsAnotherNamespace = new BesteRightsNamespace();
+                besteRightsAnotherNamespace.Name = "CheckRegisterAnotherNamespace";
+                session.Insert(besteRightsAnotherNamespace);
+
                 transaction.Commit();
             }
         }
@@ -234,6 +240,31 @@ namespace Beste.Rights.Tests
                 // try to generate tables if connection failed
                 SessionFactory.GenerateTables();
             }
+        }
+
+
+        [TestMethod]
+        public void CheckGrandManually()
+        {
+            ActivateTestSchema();
+            AddInitialRightsToDatabase();
+
+            RightControl rightControl = new RightControl("CheckRegisterAnotherNamespace");
+            string token = "SomeToken";
+            List<PureRight> pureRights = new List<PureRight>();
+            pureRights.Add(new PureRight
+            {
+                Authorized = true,
+                Operation = "AddServerSettings_" + "SomeUser",
+                RecourceModule = "ServerSetting"
+            });
+            string otherToken = rightControl.Register(1337, pureRights, token);
+
+            if (!rightControl.IsGranted(token, "AddServerSettings_" + "SomeUser", "ServerSetting"))
+            {
+                Assert.Fail();
+            }
+
         }
     }
 }
