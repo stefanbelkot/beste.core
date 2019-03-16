@@ -1,6 +1,7 @@
 ﻿using Beste.Databases.User;
 using Beste.Module.Settings;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 
 namespace Beste.Module
@@ -58,6 +59,7 @@ namespace Beste.Module
     }
 
     [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum BesteUserAuthentificationResult
     {
         USER_UNKNOWN,
@@ -87,6 +89,7 @@ namespace Beste.Module
         }
     }
     [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ModifyUserResult
     {
         MISSING_USER_PARAMS,
