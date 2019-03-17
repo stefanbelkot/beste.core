@@ -7,6 +7,7 @@ using Beste.Databases.Connector;
 using System.IO;
 using System;
 using NHibernate;
+using Beste.Core.Models;
 
 namespace Beste.Module.Tests
 {
@@ -313,22 +314,15 @@ namespace Beste.Module.Tests
             BesteUserAuthentificationResponse authResponse = besteUserOtherPepper.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
             ValiateResponse(authResponse, BesteUserAuthentificationResult.WRONG_PASSWORD);
         }
-        
-        private static void ValiateResponse(ModifyUserResponse response, ModifyUserResult expectedResult)
-        {
-            if (response.Result != expectedResult)
-            {
-                Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + expectedResult.ToString());
-                Assert.Fail();
-            }
-        }
 
-        private static void ValiateResponse(BesteUserAuthentificationResponse response, BesteUserAuthentificationResult expectedResult)
+        internal static void ValiateResponse<T, T2>(T2 response, T expectedResult)
+            where T2 : IResponse<T>
+            where T : IComparable
         {
-            if (response.Result != expectedResult)
+            if (!response.Result.Equals(expectedResult))
             {
                 Console.WriteLine("response.Result = " + response.Result.ToString() + " Expected = " + expectedResult.ToString());
-                Assert.Fail();
+                Assert.Fail("response.Result = " + response.Result.ToString() + " Expected = " + expectedResult.ToString());
             }
         }
 
@@ -337,12 +331,9 @@ namespace Beste.Module.Tests
             SessionFactory.Assemblies = Assemblies;
             SessionFactory.ResetFactory();
             string pathToConfig = "TestData" + Path.DirectorySeparatorChar;
-            //DbSettings dbSettings = Xml.Xml.LoadFromFile<DbSettings>(pathToConfig + "DBConnectionSettingsTest.xml");
-            //dbSettings.DbSchema = "besttaf_test";
-            //dbSettings.DbPassword = "";
-            //dbSettings.SaveToFile(pathToConfig + "DBConnectionSettings_test.xml");
-            DbSettings dbSettings = DbSettings.LoadFromFile<DbSettings>(pathToConfig + "DBConnectionSettingsTest.xml");
             SessionFactory.SettingsPath = pathToConfig + "DBConnectionSettings_test.xml";
+            SessionFactory.ResetFactory();
+            SessionFactory.Assemblies = Assemblies;
             if (regenerateSchema)
             {
                 SessionFactory.GenerateTables();
@@ -366,11 +357,23 @@ namespace Beste.Module.Tests
         }
         public void ResetTables()
         {
-            using (ISession s = SessionFactory.GetSession())
+
+            // try to connect (check if table available)
+            try
             {
-                s.Delete("from User o");
-                s.Flush();
+                using (ISession s = SessionFactory.GetSession())
+                {
+                    s.Delete("from User o");
+                    s.Flush();
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                // try to generate tables if connection failed
+                SessionFactory.GenerateTables();
+            }
+
         }
     }
 }

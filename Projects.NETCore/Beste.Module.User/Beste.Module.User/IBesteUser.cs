@@ -1,4 +1,5 @@
-﻿using Beste.Databases.User;
+﻿using Beste.Core.Models;
+using Beste.Databases.User;
 using Beste.Module.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -46,10 +47,10 @@ namespace Beste.Module
         
     }
 
-    public class BesteUserAuthentificationResponse
+    public class BesteUserAuthentificationResponse : IResponse<BesteUserAuthentificationResult>
     {
-        public BesteUserAuthentificationResult Result;
-        public User UserData;
+        public BesteUserAuthentificationResult Result { get; private set; }
+        public User UserData { get; private set; }
 
         public BesteUserAuthentificationResponse(BesteUserAuthentificationResult result, User userData)
         {
@@ -73,12 +74,12 @@ namespace Beste.Module
         UNKNOWN_EXCEPTION
     }
 
-    public class ModifyUserResponse
+    public class ModifyUserResponse : IResponse<ModifyUserResult>
     {
-        public ModifyUserResult Result;
-        public MandatoryUserParams MandatoryUserParams;
-        public PasswordRules PasswordRules;
-        public User UserData;
+        public ModifyUserResult Result { get; private set; }
+        public MandatoryUserParams MandatoryUserParams { get; private set; }
+        public PasswordRules PasswordRules { get; private set; }
+        public User UserData { get; private set; }
 
         public ModifyUserResponse(ModifyUserResult result, MandatoryUserParams mandatoryUserParams, PasswordRules passwordRules, User userData)
         {
