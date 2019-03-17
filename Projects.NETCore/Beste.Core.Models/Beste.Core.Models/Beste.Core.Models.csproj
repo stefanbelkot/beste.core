@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Description>Library to provide basic Beste.Core.Models</Description>
     <Copyright>2019 - Beste Software</Copyright>
     <PackageId>Beste.Core.Models</PackageId>
