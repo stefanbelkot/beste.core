@@ -9,6 +9,7 @@ using Beste.Module.Settings;
 using System.IO;
 using Beste.Module.ExtensionMethods;
 using NHibernate.Util;
+using NHibernate.Exceptions;
 
 namespace Beste.Module
 {
@@ -219,24 +220,38 @@ namespace Beste.Module
             {
                 return new ModifyUserResponse(ModifyUserResult.JSON_ERROR, null, null, null);
             }
-            using (NHibernate.ISession session = SessionFactory.GetSession())
-            using (ITransaction transaction = session.BeginTransaction())
+            try
             {
-                User dbUser = (User)session.QueryOver<User>()
-                    .Where(p => p.Username == user.Username)
-                    .SingleOrDefault();
-
-                if (dbUser == null || dbUser.Equals(new User()))
+                using (NHibernate.ISession session = SessionFactory.GetSession())
+                using (ITransaction transaction = session.BeginTransaction())
                 {
-                    return new ModifyUserResponse(ModifyUserResult.USER_UNKNOWN, null, null, user);
+                    User dbUser = (User)session.QueryOver<User>()
+                        .Where(p => p.Username == user.Username)
+                        .SingleOrDefault();
+
+                    if (dbUser == null || dbUser.Equals(new User()))
+                    {
+                        return new ModifyUserResponse(ModifyUserResult.USER_UNKNOWN, null, null, user);
+                    }
+                    else
+                    {
+
+                    }
+                    session.Delete(dbUser);
+                    transaction.Commit();
+                    return new ModifyUserResponse(ModifyUserResult.SUCCESS, null, null, user);
+                }
+            }
+            catch(GenericADOException ex)
+            {
+                if(ex.ToString().Contains("a foreign key constraint fails"))
+                {
+                    return new ModifyUserResponse(ModifyUserResult.FOREIGN_KEY_CONSTRAINT_ERROR, null, null, user);
                 }
                 else
                 {
-
+                    return new ModifyUserResponse(ModifyUserResult.EXCEPTION, null, null, user);
                 }
-                session.Delete(dbUser);
-                transaction.Commit();
-                return new ModifyUserResponse(ModifyUserResult.SUCCESS, null, null, user);
             }
         }
 

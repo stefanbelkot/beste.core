@@ -97,12 +97,13 @@ namespace Beste.Module
         MISSING_USER_PARAMS,
         PASSWORD_GUIDELINES_ERROR,
         SUCCESS,
-        UNKNOWN_EXCEPTION,
+        EXCEPTION,
         USER_UNKNOWN,
         WRONG_PARAMETER,
         USER_ALREADY_EXISTS,
         RIGHT_VIOLATION,
-        JSON_ERROR
+        JSON_ERROR,
+        FOREIGN_KEY_CONSTRAINT_ERROR
     }
 
     [Flags]
