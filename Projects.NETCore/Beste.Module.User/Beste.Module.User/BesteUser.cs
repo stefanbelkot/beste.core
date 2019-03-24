@@ -291,7 +291,7 @@ namespace Beste.Module
             }
             catch (JsonReaderException)
             {
-                return new GetUsersResponse(GetUserResult.JSON_ERROR, null);
+                return new GetUsersResponse(GetUsersResult.JSON_ERROR, null);
             }
             using (NHibernate.ISession session = SessionFactory.GetSession())
             using (ITransaction transaction = session.BeginTransaction())
@@ -327,9 +327,45 @@ namespace Beste.Module
                     user.Password = null;
                     user.SaltValue = null;
                 });
-                return new GetUsersResponse(GetUserResult.SUCCESS, users);
+                return new GetUsersResponse(GetUsersResult.SUCCESS, users);
             }
         }
+
+        public GetUsersResponse GetUser(string param)
+        {
+            User user = null;
+            try
+            {
+                user = JsonConvert.DeserializeObject<User>(param);
+            }
+            catch (JsonReaderException)
+            {
+                return new GetUsersResponse(GetUsersResult.JSON_ERROR, null);
+            }
+            using (NHibernate.ISession session = SessionFactory.GetSession())
+            using (ITransaction transaction = session.BeginTransaction())
+            {
+                IList<User> dbUsers = session.QueryOver<User>()
+                    .Where(p => p.Username == user.Username)
+                    .List<User>();
+                if(dbUsers.Count == 0)
+                {
+                    return new GetUsersResponse(GetUsersResult.USER_UNKNOWN, null);
+                }
+                else if (dbUsers.Count > 1)
+                {
+                    return new GetUsersResponse(GetUsersResult.TOO_MANY_RESULTS, null);
+                }
+                List<User> users = new List<User>(dbUsers);
+                users.ForEach((item) =>
+                {
+                    item.Password = null;
+                    item.SaltValue = null;
+                });
+                return new GetUsersResponse(GetUsersResult.SUCCESS, users);
+            }
+        }
+
         private bool CheckMandatoryUserParameters(User user)
         {
             bool result = true;

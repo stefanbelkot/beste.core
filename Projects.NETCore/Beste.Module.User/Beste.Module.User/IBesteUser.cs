@@ -127,12 +127,12 @@ namespace Beste.Module
             SortUsersBy = sortUsersBy;
         }
     }
-    public class GetUsersResponse : IResponse<GetUserResult>
+    public class GetUsersResponse : IResponse<GetUsersResult>
     {
-        public GetUserResult Result { get; private set; }
+        public GetUsersResult Result { get; private set; }
         public List<User> Users { get; private set; }
 
-        public GetUsersResponse(GetUserResult result, List<User> users)
+        public GetUsersResponse(GetUsersResult result, List<User> users)
         {
             Result = result;
             Users = users;
@@ -141,11 +141,13 @@ namespace Beste.Module
 
     [Flags]
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum GetUserResult
+    public enum GetUsersResult
     {
         SUCCESS,
         EXCEPTION,
         RIGHT_VIOLATION,
-        JSON_ERROR
+        JSON_ERROR,
+        USER_UNKNOWN,
+        TOO_MANY_RESULTS
     }
 }

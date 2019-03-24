@@ -341,7 +341,7 @@ namespace Beste.Module.Tests
 
             GetUsersParams getUsersParams = new GetUsersParams(10, 0, SortUsersBy.USERNAME);
             GetUsersResponse getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            ValiateResponse(getUserResponse, GetUsersResult.SUCCESS);
             if(getUserResponse.Users.Count < 3)
             {
                 Assert.Fail("getUserResponse.Users.Count < 3");
@@ -353,7 +353,7 @@ namespace Beste.Module.Tests
 
             getUsersParams = new GetUsersParams(10, 1, SortUsersBy.USERNAME);
             getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            ValiateResponse(getUserResponse, GetUsersResult.SUCCESS);
             if (getUserResponse.Users.Count < 2)
             {
                 Assert.Fail("getUserResponse.Users.Count < 2");
@@ -365,7 +365,7 @@ namespace Beste.Module.Tests
 
             getUsersParams = new GetUsersParams(1, 1, SortUsersBy.USERNAME);
             getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            ValiateResponse(getUserResponse, GetUsersResult.SUCCESS);
             if (getUserResponse.Users.Count != 1)
             {
                 Assert.Fail("getUserResponse.Users.Count != 1");
@@ -377,11 +377,18 @@ namespace Beste.Module.Tests
 
             getUsersParams = new GetUsersParams(10, 2, SortUsersBy.EMAIL);
             getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            ValiateResponse(getUserResponse, GetUsersResult.SUCCESS);
 
             if (getUserResponse.Users[0].Email != "A_C_Email")
             {
                 Assert.Fail("getUserResponse.Users[0].Email != 'A_C_Email'");
+            }
+            
+            getUserResponse = besteUser.GetUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(getUserResponse, GetUsersResult.SUCCESS);
+            if (getUserResponse.Users[0].Email != "A_A_Email")
+            {
+                Assert.Fail("getUserResponse.Users[0].Email != 'A_A_Email'");
             }
         }
 
