@@ -145,6 +145,7 @@ namespace Beste.Module
     {
         SUCCESS,
         EXCEPTION,
+        RIGHT_VIOLATION,
         JSON_ERROR
     }
 }
