@@ -314,6 +314,76 @@ namespace Beste.Module.Tests
             BesteUserAuthentificationResponse authResponse = besteUserOtherPepper.Authenticate(JsonConvert.SerializeObject(loginUser, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
             ValiateResponse(authResponse, BesteUserAuthentificationResult.WRONG_PASSWORD);
         }
+        [TestMethod]
+        public void GetUsers()
+        {
+            BesteUser besteUser = new BesteUser();
+            User user = new User
+            {
+                Username = "A_A_User",
+                Lastname = "Lastname",
+                Firstname = "Firstname",
+                Email = "A_C_Email",
+                Password = "Passwort1$"
+            };
+            ModifyUserResponse response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
+            user.Username = "A_B_User";
+            user.Email = "A_B_Email";
+            response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
+            user.Username = "A_C_User";
+            user.Email = "A_A_Email";
+            response = besteUser.CreateUser(JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(response, ModifyUserResult.SUCCESS);
+
+            GetUsersParams getUsersParams = new GetUsersParams(10, 0, SortUsersBy.USERNAME);
+            GetUsersResponse getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            if(getUserResponse.Users.Count < 3)
+            {
+                Assert.Fail("getUserResponse.Users.Count < 3");
+            }
+            if (getUserResponse.Users[0].Username != "A_A_User")
+            {
+                Assert.Fail("getUserResponse.Users[0].Username != 'A_A_User'");
+            }
+
+            getUsersParams = new GetUsersParams(10, 1, SortUsersBy.USERNAME);
+            getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            if (getUserResponse.Users.Count < 2)
+            {
+                Assert.Fail("getUserResponse.Users.Count < 2");
+            }
+            if (getUserResponse.Users[0].Username != "A_B_User")
+            {
+                Assert.Fail("getUserResponse.Users[0].Username != 'A_B_User'");
+            }
+
+            getUsersParams = new GetUsersParams(1, 1, SortUsersBy.USERNAME);
+            getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+            if (getUserResponse.Users.Count != 1)
+            {
+                Assert.Fail("getUserResponse.Users.Count != 1");
+            }
+            if (getUserResponse.Users[0].Username != "A_B_User")
+            {
+                Assert.Fail("getUserResponse.Users[0].Username != 'A_B_User'");
+            }
+
+            getUsersParams = new GetUsersParams(10, 2, SortUsersBy.EMAIL);
+            getUserResponse = besteUser.GetUsers(JsonConvert.SerializeObject(getUsersParams, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            ValiateResponse(getUserResponse, GetUserResult.SUCCESS);
+
+            if (getUserResponse.Users[0].Email != "A_C_Email")
+            {
+                Assert.Fail("getUserResponse.Users[0].Email != 'A_C_Email'");
+            }
+        }
 
         internal static void ValiateResponse<T, T2>(T2 response, T expectedResult)
             where T2 : IResponse<T>

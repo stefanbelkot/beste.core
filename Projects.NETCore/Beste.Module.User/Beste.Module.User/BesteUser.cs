@@ -8,6 +8,7 @@ using NHibernate;
 using Beste.Module.Settings;
 using System.IO;
 using Beste.Module.ExtensionMethods;
+using NHibernate.Util;
 
 namespace Beste.Module
 {
@@ -281,7 +282,54 @@ namespace Beste.Module
 
             }
         }
-
+        public GetUsersResponse GetUsers(string param)
+        {
+            GetUsersParams getUsersParams;
+            try
+            {
+                getUsersParams = JsonConvert.DeserializeObject<GetUsersParams>(param);
+            }
+            catch (JsonReaderException)
+            {
+                return new GetUsersResponse(GetUserResult.JSON_ERROR, null);
+            }
+            using (NHibernate.ISession session = SessionFactory.GetSession())
+            using (ITransaction transaction = session.BeginTransaction())
+            {
+                System.Linq.Expressions.Expression<Func<User, object>> orderBy;
+                switch (getUsersParams.SortUsersBy)
+                {
+                    case SortUsersBy.EMAIL:
+                        orderBy = (k) => k.Email;
+                        break;
+                    case SortUsersBy.ID:
+                        orderBy = (k) => k.UserId;
+                        break;
+                    case SortUsersBy.LASTNAME:
+                        orderBy = (k) => k.Lastname;
+                        break;
+                    case SortUsersBy.USERNAME:
+                        orderBy = (k) => k.Username;
+                        break;
+                    default:
+                        orderBy = (k) => k.Username;
+                        break;
+                }
+                //System.Linq.Expressions.Expression< Func<User, object>> expression = new System.Linq.Expressions.Expression<Func<User, object>>();
+                IList<User> dbUsers = session.QueryOver<User>()
+                    .OrderBy(orderBy).Asc
+                    .Skip(getUsersParams.Offset)
+                    .Take(getUsersParams.Limit)
+                    .List<User>();
+                List<User> users = new List<User>(dbUsers);
+                users.ForEach((user) =>
+                {
+                    user.Password = null;
+                    user.SaltValue = null;
+                });
+                return new GetUsersResponse(GetUserResult.SUCCESS, users);
+            }
+        }
         private bool CheckMandatoryUserParameters(User user)
         {
             bool result = true;

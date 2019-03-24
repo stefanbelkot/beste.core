@@ -4,6 +4,7 @@ using Beste.Module.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
+using System.Collections.Generic;
 
 namespace Beste.Module
 {
@@ -104,4 +105,46 @@ namespace Beste.Module
         JSON_ERROR
     }
 
+    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum SortUsersBy
+    {
+        USERNAME,
+        EMAIL,
+        LASTNAME,
+        ID
+    }
+    public class GetUsersParams
+    {
+        public int Limit { get; set; } = 10;
+        public int Offset { get; set; } = 0;
+        public SortUsersBy SortUsersBy { get; set; } = SortUsersBy.USERNAME;
+
+        public GetUsersParams(int limit, int offset, SortUsersBy sortUsersBy)
+        {
+            Limit = limit;
+            Offset = offset;
+            SortUsersBy = sortUsersBy;
+        }
+    }
+    public class GetUsersResponse : IResponse<GetUserResult>
+    {
+        public GetUserResult Result { get; private set; }
+        public List<User> Users { get; private set; }
+
+        public GetUsersResponse(GetUserResult result, List<User> users)
+        {
+            Result = result;
+            Users = users;
+        }
+    }
+
+    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum GetUserResult
+    {
+        SUCCESS,
+        EXCEPTION,
+        JSON_ERROR
+    }
 }
